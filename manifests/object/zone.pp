@@ -14,6 +14,8 @@ define icinga2::object::zone (
   $object_name               = $name,
   $endpoints                 = undef,
   $parent                    = undef,
+  $zonesd_create             = true,
+  $zonesd_dir                = '/etc/icinga2/zones.d/',
   $target_dir                = '/etc/icinga2/objects/zones',
   $target_file_name          = "${name}.conf",
   $target_file_owner         = 'root',
@@ -25,6 +27,8 @@ define icinga2::object::zone (
     validate_string($parent)
   }
   validate_array($endpoints)
+  validate_bool($zonesd_create)
+  validate_string($zonesd_dir)
 
   file {"${target_dir}/${target_file_name}":
     ensure  => $ensure,
@@ -34,4 +38,14 @@ define icinga2::object::zone (
     content => template('icinga2/object_zone.conf.erb'),
     notify  => Service['icinga2'],
   }
+
+  if $zonesd_create {
+    file {"${zonesd_dir}/${object_name}":
+      ensure  => 'directory',
+      owner   => $target_file_owner,
+      group   => $target_file_group,
+      mode    => $target_file_mode,
+    }
+  }
+
 }
